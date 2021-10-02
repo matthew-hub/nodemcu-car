@@ -1,0 +1,4 @@
+/node-server/node_modules
+
+# not used for now
+/.prettierrc 
