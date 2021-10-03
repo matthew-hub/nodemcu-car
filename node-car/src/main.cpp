@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <Hash.h>
 
+#include "webSockets.h"
+
+/** PARAMETERS FOR CONNECTING TO WIFI NETWORK **/
 const char* ssid = "Home";
 const char* pwd = "genesiswifi";
 
@@ -18,9 +20,24 @@ void setup() {
         Serial.print(".");
     };
     Serial.println("");
-    Serial.println("WiFi connected");
+    Serial.print("Connected, IP Adress: ");
+    Serial.println(WiFi.localIP());
+
+    webSocket.begin(host, port, path);
+    // event handler
+    webSocket.onEvent(webSocketEvent);
+
+    // try ever 5000 again if connection has failed
+    webSocket.setReconnectInterval(5000);
+
+    // start heartbeat (optional)
+    // ping server every 15000 ms
+    // expect pong from server within 3000 ms
+    // consider connection disconnected if pong is not received 2 times
+    webSocket.enableHeartbeat(15000, 5000, 2);
 }
 
 void loop() {
+    webSocket.loop();
     // put your main code here, to run repeatedly:
 }
