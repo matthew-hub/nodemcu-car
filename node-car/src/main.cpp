@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 
+#include "ds.h"
 #include "webSockets.h"
 
 /** PARAMETERS FOR CONNECTING TO WIFI NETWORK **/
@@ -23,6 +24,12 @@ void setup() {
     Serial.print("Connected, IP Adress: ");
     Serial.println(WiFi.localIP());
 
+    // DS18B20 sensors setup
+    sensor.begin();
+
+    // The first requests sensor for measurement
+    sensor.requestTemperatures();
+
     webSocket.begin(host, port, path);
     // event handler
     webSocket.onEvent(webSocketEvent);
@@ -39,5 +46,9 @@ void setup() {
 
 void loop() {
     webSocket.loop();
+    /** READ TEMPERATURE DS18B20 **/
+    /** HANDLE THIS LAYTER **/
+    /** readTemperature(); **/
+    /** *****************  **/
     // put your main code here, to run repeatedly:
 }
