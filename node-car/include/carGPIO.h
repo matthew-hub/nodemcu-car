@@ -1,8 +1,8 @@
 /* LIST OF USED GPIOs */
 
 // DC MOTOR
-#define MOTORIN0 9
-#define MOTORIN1 10
+#define MOTORIN0 10
+#define MOTORIN1 9
 
 // SERVO
 #define CARSERVO D2

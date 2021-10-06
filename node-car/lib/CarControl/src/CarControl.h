@@ -32,21 +32,26 @@
 #ifndef CARCONTROL_H
 #define CARCONTROL_H
 
-#include "Arduino.h"
+#include <Arduino.h>
+#include <Servo.h>
 
 class CarControl {
    public:
-    CarControl(uint8_t pin_d0, uint8_t pin_d1, uint8_t car_servo, uint8_t hc_servo);
-
+    CarControl(uint8_t pin_d0, uint8_t pin_d1, uint8_t car_servo_pin, uint8_t hc_servo_pin);
+    void setVelocity(int car_speed);
     void forward();
     void reverse();
     void brake();
     void handbrake();
-    void controlCarServo();
-    void controlHcServo();
+    void controlCarServo(int set_point);
+    void controlSensorServo(int set_point);
 
    private:
-    uint8_t pin_d0, pin_d1, car_servo, hc_servo;
+    Servo carServo;
+    Servo hcServo;
+    uint8_t pin_d0, pin_d1, car_servo_pin, hc_servo_pin;
+    int car_speed = 110;
+    int start_point = 90;
 };
 
 #endif

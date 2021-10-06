@@ -1,6 +1,8 @@
 #include <CarControl.h>
 #include <WebSocketsClient.h>
 
+// TODO: handle if someone connect to car
+
 #define USE_SERIAL Serial
 
 #ifndef SOCKETEVENT_H
@@ -8,14 +10,13 @@
 
 class SocketEvent {
    public:
-    SocketEvent(CarControl& graph, WebSocketsClient& webSocket);
+    SocketEvent(CarControl& car, WebSocketsClient& webSocket);
     void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
-    void carGo();
-    // using Combiner = void (SocketEvent::*)(void);
 
    private:
     void sendMessage(String& msg);
-    CarControl& graph;
+    void handleEvent(String payload);
+    CarControl& car;
     WebSocketsClient& webSocket;
 };
 #endif
