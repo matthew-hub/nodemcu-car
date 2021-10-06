@@ -1,20 +1,18 @@
-#include <Hash.h>
-#include <WebSocketsClient.h>
-#define USE_SERIAL Serial
+#include "SocketEvent.h"
+using namespace std::placeholders;
 
-/** WEBSOCKETS CONNECTION PARAMETERS **/
-const char* path = "/echo";
-const char* host = "192.168.0.2";
-const int port = 3000;
+SocketEvent::SocketEvent(CarControl& graph, WebSocketsClient& webSocket)
+    : graph(graph), webSocket(webSocket){};  // AAAAAAAA !!! :( member initializer lists
 
-// WEBSOCKETS
-WebSocketsClient webSocket;
+void SocketEvent::carGo() {
+    graph.forward();
+}
 
-void sendMessage(String& msg) {
+void SocketEvent::sendMessage(String& msg) {
     webSocket.sendTXT(msg.c_str(), msg.length() + 1);
 }
 
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+void SocketEvent::webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_DISCONNECTED:
             USE_SERIAL.printf("[WSc] Disconnected!\n");
@@ -27,16 +25,16 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
             break;
         }
         case WStype_TEXT: {
-            // #####################
-            // handle protocol
-            // #####################
-
             String text = (char*)payload;
+
             USE_SERIAL.printf("[WSc] get text: %s\n", payload);
 
             if (text.startsWith("s")) {
                 USE_SERIAL.println("s");
                 String xVal = (text.substring(text.indexOf("s") + 1, text.length()));
+            }
+            if (text.startsWith("F")) {
+                graph.forward();
             }
 
             break;
