@@ -1,4 +1,6 @@
 /node-server/node_modules
 
+/.vscode
+
 # not used for now
 /.prettierrc 
