@@ -3,17 +3,12 @@
 SocketEvent::SocketEvent(CarControl& car, WebSocketsClient& webSocket)
     : car(car), webSocket(webSocket){};  // AAAAAAAA !!! :( member initializer lists
 
-void SocketEvent::sendMessage(String& msg) {
+void SocketEvent::send_message(String& msg) {
     webSocket.sendTXT(msg.c_str(), msg.length() + 1);
 }
 
-void SocketEvent::handleEvent(String payload) {
-    if (payload.startsWith("V")) {  // velocity
-        String getVelocity = (payload.substring(payload.indexOf("V") + 1, payload.length()));
-        int velocity = getVelocity.toInt();
-        car.setVelocity(velocity);
-    }
-
+void SocketEvent::handle_event(String payload) {
+    /* CAR EVENTS */
     if (payload.startsWith("F")) {  // forward
         car.forward();
     }
@@ -31,36 +26,49 @@ void SocketEvent::handleEvent(String payload) {
     }
 
     if (payload.startsWith("C")) {  // set car servo position
-        String getSetPoint = (payload.substring(payload.indexOf("C") + 1, payload.length()));
-        int setPoint = getSetPoint.toInt();
-        car.controlCarServo(setPoint);
+        String getSetPoint = (payload.substring(1, payload.length()));
+        int set_point = getSetPoint.toInt();
+        car.control_car_servo(set_point);
     }
 
     if (payload.startsWith("S")) {  // set sensor servo position
-        String getSetPoint = (payload.substring(payload.indexOf("S") + 1, payload.length()));
-        int setPoint = getSetPoint.toInt();
-        car.controlSensorServo(setPoint);
+        String getSetPoint = (payload.substring(1, payload.length()));
+        int set_point = getSetPoint.toInt();
+        car.control_sensor_servo(set_point);
+    }
+
+    if (payload.startsWith("V")) {  // velocity
+        String getVelocity = (payload.substring(1, payload.length()));
+        int velocity = getVelocity.toInt();
+        car.set_velocity(velocity);
+    }
+
+    if (payload.startsWith("M")) {  // set car mode
+        String getMode = (payload.substring(5, payload.length()));
+        int mode = getMode.toInt();
+        car.update_car_mode(mode);
     }
 }
 
-void SocketEvent::webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+void SocketEvent::webSocket_event(WStype_t type, uint8_t* payload, size_t length) {
     switch (type) {
         case WStype_DISCONNECTED:
             USE_SERIAL.printf("[WSc] Disconnected!\n");
+
+            car.handbrake();  //  EMERGENCY BRAKING IF DISCONNECTED
+            car.update_car_status(WAITING);
             break;
         case WStype_CONNECTED: {
             String text = (char*)payload;
+            String msg = "CONNECT\r\n[WSc] Connected to url: " + text + "\r\nNODE_CAR";
 
-            String msg = "CONNECT\r\naccept-version:1.1,1.0\r\nheart-beat:10000,10000\r\n\r\n[WSc] Connected to url: " + text;
-            sendMessage(msg);
+            send_message(msg);
+            car.update_car_status(READY);
             break;
         }
         case WStype_TEXT: {
             String text = (char*)payload;  // convert to string (-_-)
-            String msg = "[WSc] get text: " + text;
-            handleEvent(text);
-            sendMessage(msg);
-
+            handle_event(text);
             break;
         }
         case WStype_BIN:

@@ -11,11 +11,11 @@
 class SocketEvent {
    public:
     SocketEvent(CarControl& car, WebSocketsClient& webSocket);
-    void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
+    void webSocket_event(WStype_t type, uint8_t* payload, size_t length);
+    void send_message(String& msg);
 
    private:
-    void sendMessage(String& msg);
-    void handleEvent(String payload);
+    void handle_event(String payload);
     CarControl& car;
     WebSocketsClient& webSocket;
 };
