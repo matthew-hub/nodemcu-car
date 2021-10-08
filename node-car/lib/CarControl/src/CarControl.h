@@ -35,23 +35,45 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+typedef enum {
+    WAITING,
+    READY
+} CAR_STATUS;
+
+typedef enum {
+    FORWARD,
+    REVERSE,
+    STOP
+} CAR_MOVE;
+
+enum CAR_MODE {
+    NORMAL,
+    OVERRIDE
+};
+
 class CarControl {
    public:
     CarControl(uint8_t pin_d0, uint8_t pin_d1, uint8_t car_servo_pin, uint8_t hc_servo_pin);
-    void setVelocity(int car_speed);
     void forward();
     void reverse();
     void brake();
     void handbrake();
-    void controlCarServo(int set_point);
-    void controlSensorServo(int set_point);
+    void control_car_servo(int set_point);
+    void control_sensor_servo(int set_point);
+    void set_velocity(int car_speed);
+    void update_car_status(CAR_STATUS status);
+    void update_car_move(CAR_MOVE move);
+    void update_car_mode(int mode);
+    int _car_status = WAITING;
+    int _car_mode = NORMAL;
+    int _car_move = STOP;
 
    private:
     Servo carServo;
     Servo hcServo;
     uint8_t pin_d0, pin_d1, car_servo_pin, hc_servo_pin;
-    int car_speed = 110;
-    int start_point = 90;
+    int _car_speed = 110;
+    int _start_point = 90;
 };
 
 #endif
