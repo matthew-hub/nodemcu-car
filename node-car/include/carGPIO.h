@@ -11,3 +11,6 @@
 // HCSR04
 #define TRIGGER D3
 #define ECHO D4
+
+// DS18B20
+#define ONEWIRE_DS D7
