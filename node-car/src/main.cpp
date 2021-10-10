@@ -28,6 +28,12 @@ unsigned long last_temp_request = 0;
 unsigned long delay_in_millis = 0;
 int temperature = 0;  // need only integers
 
+/** ULTRASONIC DISTANCE SENSOR PARAMETERS **/
+unsigned long last_distance_request = 0;
+unsigned long hcsr04_delay_in_millis = 29;
+int max_cm_distance = 150;  // set max distance for sensor in cm
+int hcsr04_uS = 0;          // hold sensor data (uS)
+
 // WEBSOCKETS CLIENT
 WebSocketsClient webSocket;
 
@@ -97,13 +103,12 @@ void loop() {
 
     /** READ TEMPERATURE DS18B20 **/
 
-    if (millis() - last_temp_request >= delay_in_millis)  // waited long enough??
-    {
-        int to_compare = SENSOR.getTempCByIndex(0);  // to compare temperatures
-        if (abs(to_compare - temperature) >= 1) {    // get absolute values, check temperature changes one degree
-            temperature = SENSOR.getTempCByIndex(0);
+    if (millis() - last_temp_request >= delay_in_millis) {
+        int to_compare = SENSOR.getTempCByIndex(0);   // to compare temperatures
+        if (abs(to_compare - temperature) >= 1) {     // get absolute values, check if temperature changed about one degree
+            temperature = SENSOR.getTempCByIndex(0);  // get temperature
 
-            /* creating a string to be parsed by JSON */
+            /* creating a string that can be parsed by JSON */
             String temp("{\"sensor\":{\"name\":\"DS18B20\",\"data\":" + String(temperature) + "}}");
             webSocket.sendTXT(temp);  // send string to websocket server
         }
@@ -114,16 +119,24 @@ void loop() {
 
     /* ***************** */
 
-    // TODO: ping HCSR04 every 29ms for better measure
     /** MEASURE DISTANCE HCSR04 **/
 
-    int uS = HC_SENSOR.ping(150);
-    String pingString = "PING_uS:" + String(uS);
-    // SOCKET.send_message(pingString);
+    if (millis() - last_distance_request >= hcsr04_delay_in_millis) {  // ping HCSR04 every 29ms
+        hcsr04_uS = HC_SENSOR.ping(max_cm_distance);                   // get ping in uS
 
-    // EMERGENCY BRAKING IF THE DISTANCE IS APPROXIMATELY < 30CM
+        /* creating a string that can be parsed by JSON */
+        String hcsr04_data("{\"sensor\":{\"name\":\"HCSR04\",\"data\":" + String(hcsr04_uS) + "}}");
+        webSocket.sendTXT(hcsr04_data);  // send string to websocket server
+
+        last_distance_request = millis();
+    }
+
+    /* ***************** */
+
+    // EMERGENCY BRAKING IF THE DISTANCE IS APPROXIMATELY < 50CM
     // TODO: forward drive lock, set the emergency braking distance dependent on car velocity
-    if ((uS > 0 && uS < 1710) && XFLASH._car_move == FORWARD) {
+
+    if ((hcsr04_uS > 0 && hcsr04_uS < 2850) && XFLASH._car_move == FORWARD) {
         webSocket.sendTXT("{\"WALL\": true}");
         XFLASH.handbrake();
     }
