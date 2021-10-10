@@ -3,10 +3,6 @@
 SocketEvent::SocketEvent(CarControl& car, WebSocketsClient& webSocket)
     : car(car), webSocket(webSocket){};  // AAAAAAAA !!! :( member initializer lists
 
-void SocketEvent::send_message(String& msg) {
-    webSocket.sendTXT(msg.c_str(), msg.length() + 1);
-}
-
 void SocketEvent::handle_event(String payload) {
     /* CAR EVENTS */
     if (payload.startsWith("F")) {  // forward
@@ -60,9 +56,10 @@ void SocketEvent::webSocket_event(WStype_t type, uint8_t* payload, size_t length
             break;
         case WStype_CONNECTED: {
             String text = (char*)payload;
-            String msg = "CONNECT\r\n[WSc] Connected to url: " + text + "\r\nNODE_CAR";
+            String websocket("{\"websocket\":{\"status\":\"connected\", \"url\":\"" + text + "\"}}");
+            // String msg = "CONNECT\r\n[WSc] Connected to url: " + text + "\r\nNODE_CAR";
 
-            send_message(msg);
+            webSocket.sendTXT(websocket);
             car.update_car_status(READY);
             break;
         }
